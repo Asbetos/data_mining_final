@@ -378,6 +378,54 @@ plt.show()
 # 7. LA1and10: Total population in low-access areas using a 1 mile (urban) / 10 mile (rural) distance threshold.
 
 
+
+#%%[markdown]
+## Smart Question 3: How are food deserts statistically associated with health outcomes such as obesity and diabetes at the county level?
+
+atlas = pd.read_csv(
+    '../dataset/FoodAccessResearchAtlasData2019.csv',
+    dtype={'CensusTract': str}
+)
+atlas['CensusTract'] = atlas['CensusTract'].str.zfill(11)
+atlas['CountyFIPS']  = atlas['CensusTract'].str[:5]
+atlas['FoodDesert'] = atlas['LILATracts_1And10'].astype(int)
+
+def load_county_data(path, fips_col='FIPS'):
+    df = pd.read_csv(path)
+    df['CountyFIPS'] = df[fips_col].astype(str).str.zfill(5)
+    return df
+
+soc = load_county_data('../dataset/FE_socioeconomic.csv')
+ins = load_county_data('../dataset/FE_insecurity.csv')
+hlth = load_county_data('../dataset/FE_health.csv')
+stores = load_county_data('../dataset/FE_stores.csv')
+restaurants = load_county_data('../dataset/FE_restaurants.csv')
+
+merged_df = (
+    atlas
+    .merge(soc[['CountyFIPS','POVRATE15','MEDHHINC15','CHILDPOVRATE15','PCT_NHWHITE10','PCT_NHBLACK10','PCT_HISP10']], on='CountyFIPS', how='left')
+    .merge(ins[['CountyFIPS','FOODINSEC_12_14']], on='CountyFIPS', how='left')
+    .merge(hlth[['CountyFIPS','PCT_OBESE_ADULTS17']], on='CountyFIPS', how='left')
+    .merge(stores[['CountyFIPS','GROCPTH16']], on='CountyFIPS', how='left')
+    .merge(restaurants[['CountyFIPS','FFRPTH16']], on='CountyFIPS', how='left')
+)
+
+health_df = merged_df[['FoodDesert', 'PCT_OBESE_ADULTS17']].dropna()
+
+# Scatter plot
+plt.figure(figsize=(6, 4))
+plt.scatter(health_df['PCT_OBESE_ADULTS17'], health_df['FoodDesert'], alpha=0.5)
+plt.xlabel('Obesity Rate (Adults %)')
+plt.ylabel('Food Desert (1=True)')
+plt.title('Obesity vs Food Desert Presence')
+plt.tight_layout()
+plt.show()
+
+# Correlation
+corr = health_df.corr().loc['FoodDesert', 'PCT_OBESE_ADULTS17']
+print(f"Correlation between food deserts and obesity: {corr:.3f}")
+
+#%%[markdown]
 #%%[markdown]
 ## Smart Question 4: Can we develop a predictive model that accurately identifies 
 # high-risk areas likely to be or become food deserts based on social and economic indicators?
@@ -433,3 +481,18 @@ plt.tight_layout()
 plt.show()
 
 # %%
+#%%[markdown]
+## Smart Question 5: What evidence-based national policies could help reduce food desert prevalence, based on socioeconomic and health indicators?
+
+# Based on the Random Forest importance chart above, policies that improve:
+# - Vehicle access (LILATracts_Vehicle)
+# - Income (MedianFamilyIncome)
+# - Access to healthy food programs (lasnap10share)
+# are likely to reduce food desert prevalence.
+
+# Federal interventions such as:
+# 1. Subsidizing grocery stores in vehicle-scarce areas
+# 2. Expanding SNAP eligibility and incentives
+# 3. Investing in public transport in low-access tracts
+# may prove effective based on these insights.
+
