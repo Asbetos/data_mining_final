@@ -377,6 +377,64 @@ plt.show()
 # 6. PovertyRate: Percentage of individuals in the tract living below the federal poverty level.
 # 7. LA1and10: Total population in low-access areas using a 1 mile (urban) / 10 mile (rural) distance threshold.
 
+#%%[markdown]
+## Smart Question 3: How are food deserts related to health issues like obesity and diabetes?
+
+# %% 
+# Load the cleaned food environment dataset
+health_df = pd.read_csv('../dataset/Cleaned_Food_Environment_Dataset.csv')
+
+# Check available columns
+print("Columns in health dataset:")
+print(health_df.columns.tolist())
+
+# %%
+# We'll focus on the columns related to food deserts and health outcomes
+# For health outcomes: Adult Obesity Rate, Adult Diabetes Rate
+# For food desert proxy: % Population Low Access (FoodDesert_Pct)
+# Let's rename for clarity if needed
+
+# Select needed columns
+health_data = health_df[['County', 'State', 'FoodDesert_Pct', 'Adult_Obesity_Rate', 'Adult_Diabetes_Rate']].dropna()
+
+print("Sample of cleaned health data:")
+display(health_data.head())
+
+# %% 
+# Scatter plot: Food Desert % vs Adult Obesity Rate
+plt.figure(figsize=(8,6))
+plt.scatter(health_data['FoodDesert_Pct'], health_data['Adult_Obesity_Rate'], alpha=0.6, color='tomato')
+plt.title('Food Desert % vs Adult Obesity Rate')
+plt.xlabel('Population in Food Desert (%)')
+plt.ylabel('Adult Obesity Rate (%)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# %%
+# Scatter plot: Food Desert % vs Adult Diabetes Rate
+plt.figure(figsize=(8,6))
+plt.scatter(health_data['FoodDesert_Pct'], health_data['Adult_Diabetes_Rate'], alpha=0.6, color='seagreen')
+plt.title('Food Desert % vs Adult Diabetes Rate')
+plt.xlabel('Population in Food Desert (%)')
+plt.ylabel('Adult Diabetes Rate (%)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# %% 
+# Correlation calculation
+correlation_obesity = health_data['FoodDesert_Pct'].corr(health_data['Adult_Obesity_Rate'])
+correlation_diabetes = health_data['FoodDesert_Pct'].corr(health_data['Adult_Diabetes_Rate'])
+
+print(f"Correlation between Food Desert % and Adult Obesity Rate: {correlation_obesity:.2f}")
+print(f"Correlation between Food Desert % and Adult Diabetes Rate: {correlation_diabetes:.2f}")
+
+# %%[markdown]
+# **Findings:**  
+# - There is a positive correlation between the percentage of the population living in food deserts and higher rates of obesity and diabetes.  
+# - This suggests that limited access to healthy food options might be contributing to worse health outcomes.
+
 
 #%%[markdown]
 ## Smart Question 4: Can we develop a predictive model that accurately identifies 
